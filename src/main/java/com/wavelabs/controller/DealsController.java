@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
+import com.wavelabs.cs.util.ImageUriParser;
+
 import io.nbos.capi.api.v0.models.RestMessage;
 
 import org.json.simple.JSONObject;
@@ -35,30 +37,7 @@ public class DealsController {
 		
 		ResponseEntity<String> response = restTemplate.getForEntity(resourceURL, String.class);
 		
-		String jsonStr = response.getBody();
-		JSONParser parser = new JSONParser();
-		JSONObject obj;
-		JSONArray items;
-		try{
-			obj = (JSONObject) parser.parse(jsonStr);
-			items = (JSONArray)obj.get("items");
-			for(int i = 0; i < items.size(); i++){
-				JSONObject obj2 = (JSONObject)items.get(i);
-				JSONObject image = (JSONObject)obj2.get("image");
-				String path = (String)image.get("path");
-				InetAddress ip = InetAddress.getLocalHost();
-				path = "http://"+ip.getHostAddress()+":8080/site/binaries"+path;
-				//System.out.println(path);
-				image.put("path", path);
-				obj2.put("image", image);
-				items.set(i, obj2);
-			}
-			obj.put("items", items);
-			StringWriter out = new StringWriter();
-		    obj.writeJSONString(out);
-		    jsonStr = out.toString();
-			
-		}catch(Exception e){}
+		String jsonStr = ImageUriParser.getJsonString(response.getBody());
 		
 		return jsonStr;
 	}
@@ -83,16 +62,9 @@ public class DealsController {
 				JSONObject obj2 = (JSONObject)items.get(i);
 				String id = (String)obj2.get("id");
 				if(id.equals(dealId)){
-					JSONObject image = (JSONObject)obj2.get("image");
-					String path = (String)image.get("path");
-					InetAddress ip = InetAddress.getLocalHost();
-					path = "http://"+ip.getHostAddress()+":8080/site/binaries"+path;
-					//System.out.println(path);
-					image.put("path", path);
+					JSONObject image = ImageUriParser.parseImageUri((JSONObject)obj2.get("image"));
 					obj2.put("image", image);
 					items.set(i, obj2);
-					
-					
 					return ResponseEntity.status(200).body(obj2);
 				}
 				
