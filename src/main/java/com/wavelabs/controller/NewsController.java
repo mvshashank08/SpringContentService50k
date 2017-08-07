@@ -62,7 +62,9 @@ public class NewsController {
 				
 			}
 			
-		}catch(Exception e){}
+		}catch(Exception e){
+			return ResponseEntity.status(500).body(e.getMessage());
+		}
 		restMessage.message = "Event not found";
 		restMessage.messageCode = "404";
 		return ResponseEntity.status(404).body(restMessage);
